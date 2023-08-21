@@ -24,6 +24,7 @@ That's it!
 scheduler: {
 		enabled: true,
 		config: {
+			customDate: async () => new Date(),
 			contentTypes: {
 				'api::page.page': {}
 			}

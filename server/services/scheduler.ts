@@ -17,6 +17,11 @@ export default ({ strapi }: { strapi: Strapi }) => ({
 	async delete(id) {
 		return await strapi.entityService.delete('plugin::scheduler.scheduler', id);
 	},
+	async currentDate() {
+		const customDateFunc = strapi.plugin('scheduler').config('customDate');
+
+		return (typeof customDateFunc === 'function') ? await customDateFunc() : new Date();
+	},
 	async schedule(data) {
 		const existingEntries = await this.getByUidAndEntryId(data.uid, data.entryId);
 		const existingPublishEntry = existingEntries.find((entry) => entry.type === 'publish');
@@ -60,11 +65,9 @@ export default ({ strapi }: { strapi: Strapi }) => ({
 		return result;
 	},
 	async findItemsPastCurrentDate() {
-		const currentDate = new Date();
-
 		const result = await strapi.query('plugin::scheduler.scheduler').findMany({
 			where: {
-				datetime: { $lte: currentDate }
+				datetime: { $lte: await this.currentDate() }
 			}
 		});
 
@@ -76,7 +79,7 @@ export default ({ strapi }: { strapi: Strapi }) => ({
 				id: schedulerEntry.entryId
 			},
 			data: {
-				publishedAt: new Date()
+				publishedAt: await this.currentDate()
 			}
 		});
 	},
